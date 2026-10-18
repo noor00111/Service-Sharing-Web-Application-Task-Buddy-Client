@@ -199,14 +199,3 @@ NODE_ENV=development
 ```bash
 npm run dev      # http://localhost:5000, restarts on save
 ```
-
-### Scripts
-
-| Command | What it does |
-| :-- | :-- |
-| `npm run dev` | Start the Vite dev server |
-| `npm run build` | Build for production into `dist/` |
-| `npm run preview` | Serve the production build |
-| `npm run lint` | Run ESLint |
-
----
