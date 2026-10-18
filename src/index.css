@@ -1,10 +1,200 @@
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Young+Serif&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-a.active{
-    font-weight: bold;
-    color: #FFC107;
+@layer base {
+    :root {
+        --paper: 252 247 249;
+        --card: 255 255 255;
+        --ink: 64 61 136;
+        --ink-soft: 139 99 155;
+        --rule: 236 220 229;
+        --stamp: 175 113 157;
+        --plum: 139 99 155;
+        --deep: 64 61 136;
+        --marker: 248 178 178;
+        --marker-alpha: 1;
+        --danger: 184 50 84;
+        color-scheme: light;
+
+        --toastify-font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+        --toastify-color-light: rgb(var(--card));
+        --toastify-text-color-light: rgb(var(--ink));
+        --toastify-color-success: rgb(var(--deep));
+        --toastify-color-error: rgb(var(--danger));
+        --toastify-color-warning: rgb(var(--stamp));
+        --toastify-color-info: rgb(var(--plum));
+        --toastify-color-progress-light: linear-gradient(90deg, #f8b2b2, #af719d, #8b639b, #403d88);
+    }
+
+    .dark {
+        --paper: 26 24 56;
+        --card: 36 34 74;
+        --ink: 250 236 240;
+        --ink-soft: 214 182 205;
+        --rule: 62 58 110;
+        --stamp: 248 178 178;
+        --plum: 205 160 220;
+        --deep: 168 164 240;
+        --marker: 248 178 178;
+        --marker-alpha: 0.3;
+        --danger: 255 128 150;
+        color-scheme: dark;
+    }
+
+    html {
+        background-color: rgb(var(--paper));
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        @apply font-body text-ink antialiased;
+        background-color: rgb(var(--paper));
+        transition:
+            background-color 0.3s ease,
+            color 0.3s ease;
+    }
+
+    h1,
+    h2,
+    h3 {
+        text-wrap: balance;
+    }
+    p {
+        text-wrap: pretty;
+    }
+
+    ::selection {
+        background: rgb(var(--marker));
+        color: #403d88;
+    }
+
+    :focus-visible {
+        outline: 2px solid rgb(var(--stamp));
+        outline-offset: 3px;
+        border-radius: 6px;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.7;
+    }
+    .dark input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.85);
+    }
+}
+
+@layer components {
+    .tb-container {
+        @apply mx-auto w-full max-w-[76rem] px-4 sm:px-6 lg:px-8;
+    }
+
+    .tb-eyebrow {
+        @apply font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-ink-soft;
+    }
+
+    .tb-btn {
+        @apply inline-flex h-11 select-none items-center justify-center gap-2 rounded-md px-5 text-sm font-bold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+    .tb-btn-ink {
+        @apply tb-btn bg-ink text-paper hover:bg-stamp;
+    }
+    .tb-btn-line {
+        @apply tb-btn border border-ink/25 text-ink hover:border-ink hover:bg-card;
+    }
+    .tb-btn-danger {
+        @apply tb-btn bg-danger text-white hover:bg-danger/90;
+    }
+
+    .tb-label {
+        @apply mb-1.5 block font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink-soft;
+    }
+    .tb-field {
+        @apply w-full rounded-md border border-rule bg-card px-3.5 py-2.5 text-[15px] text-ink transition-colors duration-150 placeholder:text-ink-soft/60 hover:border-ink/30 focus:border-stamp focus:outline-none focus:ring-2 focus:ring-stamp/20;
+    }
+
+    .tb-card {
+        @apply rounded-xl border border-rule bg-card;
+    }
+
+    .tb-marker {
+        background-image: linear-gradient(
+            transparent 58%,
+            rgb(var(--marker) / var(--marker-alpha)) 58%,
+            rgb(var(--marker) / var(--marker-alpha)) 90%,
+            transparent 90%
+        );
+        padding-inline: 0.08em;
+        margin-inline: -0.08em;
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
+    }
+
+    .tb-slip {
+        @apply relative rounded-xl border border-rule bg-card;
+    }
+    .tb-perf {
+        @apply relative border-t border-dashed border-rule;
+    }
+    .tb-perf::before,
+    .tb-perf::after {
+        content: "";
+        position: absolute;
+        top: -11px;
+        width: 22px;
+        height: 22px;
+        border-radius: 9999px;
+        background: rgb(var(--notch, var(--paper)));
+        border: 1px solid rgb(var(--rule));
+    }
+    .tb-perf::before {
+        left: -12px;
+        clip-path: inset(0 0 0 50%);
+    }
+    .tb-perf::after {
+        right: -12px;
+        clip-path: inset(0 50% 0 0);
+    }
+
+    .tb-stamp {
+        @apply inline-flex items-center justify-center whitespace-nowrap rounded-[5px] border-2 border-current font-mono font-semibold uppercase leading-none;
+        letter-spacing: 0.2em;
+        box-shadow:
+            inset 0 0 0 2px rgb(var(--card)),
+            inset 0 0 0 3.5px currentColor;
+        filter: url(#tb-ink);
+        mix-blend-mode: multiply;
+    }
+    .dark .tb-stamp {
+        mix-blend-mode: normal;
+    }
+}
+
+.Toastify__toast {
+    border: 1px solid rgb(var(--rule));
+    border-radius: 10px;
+    box-shadow: 0 10px 30px -12px rgb(var(--ink) / 0.35);
+    font-size: 15px;
+}
+.Toastify__close-button {
+    color: rgb(var(--ink-soft));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+@keyframes tb-progress {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(1);
+    }
 }

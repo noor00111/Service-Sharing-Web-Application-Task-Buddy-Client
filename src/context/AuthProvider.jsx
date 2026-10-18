@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import AuthContext from './AuthContext';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
-import auth from '../firebase/Firebase.init';
-import axios from 'axios';
-
+import { useEffect, useState } from "react";
+import AuthContext from "./AuthContext";
+import {createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile} from "firebase/auth";
+import auth from "../firebase/Firebase.init";
+import axios from "axios";
 
 const googleProvider = new GoogleAuthProvider();
 const AuthProvider = ({ children }) => {
@@ -12,28 +11,26 @@ const AuthProvider = ({ children }) => {
 
     const UserSignup = (email, password) => {
         setLoading(true);
-        return createUserWithEmailAndPassword(auth, email, password)
+        return createUserWithEmailAndPassword(auth, email, password);
     };
 
     const userSignIn = (email, password) => {
-        setLoading(true)
-        return signInWithEmailAndPassword(auth, email, password)
-    }
+        setLoading(true);
+        return signInWithEmailAndPassword(auth, email, password);
+    };
 
     const userSignOut = () => {
         setLoading(true);
         return signOut(auth);
-    }
+    };
 
     const googleUser = () => {
         return signInWithPopup(auth, googleProvider);
-    }
+    };
 
     const updateProfileUser = (updatedData) => {
         return updateProfile(auth.currentUser, updatedData);
-    }
-
-
+    };
 
     const userInfo = {
         user,
@@ -44,45 +41,33 @@ const AuthProvider = ({ children }) => {
         userSignOut,
         googleUser,
         updateProfileUser,
+    };
 
-    }
-
-    //set observer on the Auth object to get the current user
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             if (currentUser?.email) {
                 const user = { email: currentUser.email };
 
-                axios.post('https://task-buddy-server-side.vercel.app/jwt', user, { withCredentials: true })
-                    .then(res => {
-                        console.log(res.data)
+                axios.post("https://task-buddy-server-side.vercel.app/jwt", user, { withCredentials: true })
+                    .then((res) => {
+                        console.log(res.data);
                         setLoading(false);
-                    })
-            }
-            else {
-                axios.post('https://task-buddy-server-side.vercel.app/signout', {},
-                    {
-                        withCredentials: true
-                    })
-                    .then(res => {
-                        console.log('signout', res.data)
+                    });
+            } else {
+                axios.post("https://task-buddy-server-side.vercel.app/signout",{},{withCredentials: true,})
+                    .then((res) => {
+                        console.log("signout", res.data);
                         setLoading(false);
-                    })
+                    });
             }
-
         });
         return () => {
             unsubscribe();
         };
     }, []);
 
-
-    return (
-        <AuthContext.Provider value={userInfo}>
-            {children}
-        </AuthContext.Provider>
-    );
+    return <AuthContext.Provider value={userInfo}>{children}</AuthContext.Provider>;
 };
 
 export default AuthProvider;

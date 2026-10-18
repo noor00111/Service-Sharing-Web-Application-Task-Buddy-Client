@@ -1,94 +1,100 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { AiOutlineQuestionCircle } from "react-icons/ai";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { IoAdd } from "react-icons/io5";
+
+const dataFAQ = [
+    {
+        que: "What services does Task Buddy offer?",
+        ans: "Skill and learning services: web and app development, design, writing, marketing, data analysis, tutoring and more. Each one is listed by the person who provides it, with their price and service area.",
+    },
+    {
+        que: "How do I book a service?",
+        ans: "Open a service, choose Book this service, pick a date and add any notes. Your booking shows up on My bookings as Pending until the provider starts.",
+    },
+    {
+        que: "How do I know when the provider has started?",
+        ans: "The provider changes the status from their Booking requests page. You'll see it move from Pending to Working to Completed on My bookings.",
+    },
+    {
+        que: "Is there a refund policy?",
+        ans: "Yes, refunds are available under specific conditions. Read the terms and conditions for the details.",
+    },
+    {
+        que: "Can I ask for something tailored to me?",
+        ans: "Yes. Use the note field when you book to describe what you need. The provider reads it before starting.",
+    },
+    {
+        que: "How do I contact support?",
+        ans: "Email support@taskbuddy.com and the team will reply.",
+    },
+];
 
 const FAQ = () => {
-  const [selected, setSelected] = useState(null);
+    const [selected, setSelected] = useState(0);
 
-  const toggle = (i) => {
-    setSelected(selected === i ? null : i);
-  };
+    return (
+        <section className="tb-container grid gap-10 py-16 lg:grid-cols-[0.8fr_1.2fr]"
+            aria-labelledby="faq-title">
+            <div>
+                <h2 id="faq-title" className="mt-2 font-display text-4xl leading-tight md:text-[2.75rem]">
+                    Questions Before You Book{" "}
+                </h2>
+                <p className="mt-3 max-w-sm text-ink-soft">
+                    Something else? Email{" "}
+                    <a className="font-bold text-plum underline-offset-4 hover:underline"
+                        href="mailto:support@taskbuddy.com">
+                        support@taskbuddy.com
+                    </a>
+                    .
+                </p>
+            </div>
 
-  const dataFAQ = [
-    {
-      que: "What services does Task Buddy offer?",
-      ans: "Task Buddy offers a range of educational skills and management services to help users achieve their learning goals and organize their tasks efficiently.",
-    },
-    {
-      que: "How do I book a service?",
-      ans: "Simply click on the 'Book Now' button on the desired service, fill in the form with the required information, and submit it to confirm your booking.",
-    },
-    {
-      que: "Is there a refund policy for purchased services?",
-      ans: "Yes, Task Buddy offers a refund policy under specific conditions. Please refer to our terms and conditions page for detailed information.",
-    },
-    {
-      que: "Can I customize a service plan?",
-      ans: "Absolutely! When booking a service, you can include special instructions to request a customized plan tailored to your needs.",
-    },
-    {
-      que: "How do I contact customer support?",
-      ans: "You can reach our customer support team by emailing support@taskbuddy.com.",
-    },
-  ];
-
-  return (
-    <div className=" my-10 bg-gray-100 py-12 font-bodyFont dark:bg-gradient-to-r from-[rgb(14,87,101)] to-[rgb(14,87,100)]">
-      <div className="max-w-4xl mx-auto px-4">
-        <motion.h2
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-4xl text-center font-bold text-teal-800 mb-6 font-headingFont  dark:text-yellow-300 flex gap-2 justify-center"
-        >FQA 
-        <motion.span
-        animate={{rotate: 360}}
-        transition={{duration: 2, repeat: Infinity, repeatType: "loop"}}
-        >
-        <AiOutlineQuestionCircle  
-        size={44} />
-        </motion.span>
-
-        </motion.h2>
-
-        <div className="space-y-4">
-          {dataFAQ.map((faq, idx) => (
-
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: idx * 0.2 }}
-              className="bg-white dark:bg-yellow-100 shadow-lg rounded-lg p-4 cursor-pointer"
-              onClick={() => toggle(idx)}
-            >
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-800 font-headingFont">
-                  {faq.que}
-                </h3>
-                <span className="text-gray-600">
-                  {selected === idx ? "-" : "+"}
-                </span>
-              </div>
-
-
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{
-                  height: selected === idx ? "auto" : 0,
-                  opacity: selected === idx ? 1 : 0,
-                }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden"
-              >
-                <p className="text-gray-600 mt-2">{faq.ans}</p>
-              </motion.div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+            <ul className="border-t border-rule">
+                {dataFAQ.map((faq, idx) => {
+                    const open = selected === idx;
+                    return (
+                        <li key={idx} className="border-b border-rule">
+                            <h3>
+                                <button
+                                    type="button"
+                                    id={`faq-q-${idx}`}
+                                    aria-expanded={open}
+                                    aria-controls={`faq-a-${idx}`}
+                                    onClick={() => setSelected(open ? null : idx)}
+                                    className="flex w-full items-center justify-between gap-6 py-5 text-left text-lg font-bold transition-colors hover:text-plum">
+                                    {faq.que}
+                                    <motion.span
+                                        animate={{ rotate: open ? 45 : 0 }}
+                                        transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${open ? "border-stamp bg-stamp text-paper" : "border-rule text-ink-soft"}`}
+                                        aria-hidden>
+                                        <IoAdd size={18} />
+                                    </motion.span>
+                                </button>
+                            </h3>
+                            <AnimatePresence initial={false}>
+                                {open && (
+                                    <motion.div
+                                        id={`faq-a-${idx}`}
+                                        role="region"
+                                        aria-labelledby={`faq-q-${idx}`}
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                                        className="overflow-hidden">
+                                        <p className="max-w-2xl pb-6 pr-12 leading-relaxed text-ink-soft">
+                                            {faq.ans}
+                                        </p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </li>
+                    );
+                })}
+            </ul>
+        </section>
+    );
 };
 
 export default FAQ;

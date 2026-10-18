@@ -1,148 +1,282 @@
-import React, { useContext, useEffect, useState } from 'react';
-import AuthContext from '../context/AuthContext';
-import { Link, NavLink } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { useContext, useEffect, useRef, useState } from "react";
+import AuthContext from "../context/AuthContext";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
+import { AnimatePresence, motion } from "framer-motion";
+import { IoChevronDown, IoMenu, IoClose, IoMoonOutline, IoSunnyOutline } from "react-icons/io5";
+import { useTheme } from "../context/ThemeContext";
+import Avatar from "../components/ui/Avatar";
+import LogoMark from "../components/ui/Logo";
+
+const MotionLink = motion.create(Link);
+
+const mainLinks = [
+    { to: "/", label: "Home" },
+    { to: "/services", label: "Services" },
+    { to: "/aboutus", label: "About" },
+    { to: "/testimonials", label: "Testimonials" },
+];
+
+const dashboardLinks = [
+    { to: "/AddService", label: "Add a service", hint: "List something you offer" },
+    { to: "/ManageServices", label: "Manage services", hint: "Edit or remove your listings" },
+    { to: "/bookedService", label: "My bookings", hint: "Sessions you have booked" },
+    { to: "/ServiceToDo", label: "Booking requests", hint: "Update status for your learners" },
+];
+
+export const Wordmark = () => (
+    <MotionLink
+        to="/"
+        className="flex items-center gap-2"
+        aria-label="Task Buddy home"
+        initial="rest"
+        animate="rest"
+        whileHover="hover"
+    >
+        <LogoMark />
+        <span className="font-display text-[1.35rem] leading-none tracking-[-0.01em]">Task Buddy</span>
+    </MotionLink>
+);
 
 const Navbar = () => {
     const { user, userSignOut } = useContext(AuthContext);
-    const menuLinks = <>
-        <NavLink className="px-6 py-2 hover:text-white hover:bg-slate-800" to="/">Home</NavLink>
-        <NavLink className="px-6 py-2 hover:text-white hover:bg-slate-800" to="/services">Services</NavLink>
-        <NavLink className="px-6 py-2 hover:text-white hover:bg-slate-800" to="/aboutus">About Us</NavLink>
-        <NavLink className="px-6 py-2 hover:text-white hover:bg-slate-800" to="/testimonials">Testimonials</NavLink>
-    </>
+    const { dark, toggleTheme } = useTheme();
+    const location = useLocation();
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [dashOpen, setDashOpen] = useState(false);
+    const dashRef = useRef(null);
 
-    const dashBoardRoutes = <>
-        {user && <>
-            <NavLink className="px-6 py-2 hover:text-white hover:bg-slate-800" to="/AddService">Add Service</NavLink>
-            <NavLink className="px-6 py-2 hover:text-white hover:bg-slate-800" to="/ManageServices">Manage Service</NavLink>
-            <NavLink className="px-6 py-2 hover:text-white hover:bg-slate-800" to="/BookedService">Booked Service</NavLink>
-            <NavLink className="px-6 py-2 hover:text-white hover:bg-slate-800" to="/ServiceToDo">Service To-Do</NavLink>
-        </>
-        }
-    </>
+    useEffect(() => {
+        setMenuOpen(false);
+        setDashOpen(false);
+    }, [location.pathname]);
 
-const handleSignOutUser = () =>{
-    userSignOut()
-    .then(()=>{
-        toast.success("Sign Out Successfully");
-    })
-    .catch(err =>{
-        toast.error(err,'Failed to Sign Out');
-    })
-}
+    useEffect(() => {
+        if (!dashOpen) return;
+        const onDown = (e) => !dashRef.current?.contains(e.target) && setDashOpen(false);
+        const onKey = (e) => e.key === "Escape" && setDashOpen(false);
+        document.addEventListener("pointerdown", onDown);
+        document.addEventListener("keydown", onKey);
+        return () => {
+            document.removeEventListener("pointerdown", onDown);
+            document.removeEventListener("keydown", onKey);
+        };
+    }, [dashOpen]);
 
-// Theme Implement
-const [themeDark, setThemeDark] = useState(true);
+    const handleSignOutUser = () => {
+        userSignOut()
+            .then(() => toast.success("Signed out"))
+            .catch(() => toast.error("Couldn't sign out. Try again."));
+    };
 
-useEffect(()=>{
-    if(themeDark){
-        document.documentElement.classList.add('dark');
-    }else{
-        document.documentElement.classList.remove('dark');
-    }
-}, [themeDark]);
-
-
-
+    const dashActive = dashboardLinks.some((l) => location.pathname.toLowerCase() === l.to.toLowerCase());
 
     return (
-        <div className="navbar font-headingFont mx-auto sticky top-0 z-50 backdrop-blur-md shadow-md lg:px-24 dark:bg-[#12283F]">
-            <div className="navbar-start">
-                <Link to="/">
-                    <img
-                        className='w-20 rounded-full shadow-lg'
-                        src="https://i.ibb.co.com/s9y146k/DALL-E-2024-12-23-11-29-26-A-modern-and-friendly-logo-design-for-an-educational-website-called-Task.webp"
-                        alt="logo" />
-                </Link>
-            </div>
+        <header className="sticky top-0 z-50 border-b border-rule bg-paper/85 backdrop-blur-md">
+            <div className="tb-container flex h-16 items-center justify-between gap-4">
+                <Wordmark />
 
-            <div className="navbar-center dark:text-white hidden lg:flex p-2 rounded-full font-semibold text-teal-700 ">
-                <ul className="menu menu-horizontal px-1  ">
-                    {menuLinks}
+                <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
+                    {mainLinks.map((l) => (
+                        <NavLink
+                            key={l.to}
+                            to={l.to}
+                            end
+                            className="relative px-3.5 py-2 text-[15px] font-bold"
+                        >
+                            {({ isActive }) => (
+                                <>
+                                    <span
+                                        className={
+                                            isActive
+                                                ? "text-ink"
+                                                : "text-ink-soft transition-colors hover:text-ink"
+                                        }
+                                    >
+                                        {l.label}
+                                    </span>
+                                    {isActive && (
+                                        <motion.span
+                                            layoutId="nav-underline"
+                                            className="absolute inset-x-3 -bottom-[1px] h-[3px] rounded-full bg-stamp"
+                                            transition={{ type: "spring", stiffness: 500, damping: 38 }}
+                                        />
+                                    )}
+                                </>
+                            )}
+                        </NavLink>
+                    ))}
 
-                    {/* Dashboard */}
-                {
-                    user && user?.email ?
-                    (
-                        <div className="dropdown dropdown-hover ">
-                        <div tabIndex={0} role='button' className='px-6 py-2 hover:text-white hover:bg-slate-800'>Dashboard</div>
-                        <ul tabIndex={0} className="dropdown-content menu bg-[rgb(11,52,59)] rounded-box z-[1] w-52 p-2 shadow">
-                            {dashBoardRoutes}
-                        </ul>
-                    </div>
-                    ) : ""
-                }
+                    {user?.email && (
+                        <div
+                            ref={dashRef}
+                            className="relative"
+                            onMouseEnter={() => setDashOpen(true)}
+                            onMouseLeave={() => setDashOpen(false)}
+                        >
+                            <button
+                                type="button"
+                                aria-expanded={dashOpen}
+                                aria-haspopup="true"
+                                onClick={() => setDashOpen((o) => !o)}
+                                className={`relative flex items-center gap-1 px-3.5 py-2 text-[15px] font-bold transition-colors ${dashActive ? "text-ink" : "text-ink-soft hover:text-ink"}`}
+                            >
+                                Dashboard
+                                <IoChevronDown
+                                    className={`transition-transform duration-200 ${dashOpen ? "rotate-180" : ""}`}
+                                    aria-hidden
+                                />
+                                {dashActive && (
+                                    <motion.span
+                                        layoutId="nav-underline"
+                                        className="absolute inset-x-3 -bottom-[1px] h-[3px] rounded-full bg-stamp"
+                                    />
+                                )}
+                            </button>
 
-                </ul>
-            </div>
+                            <AnimatePresence>
+                                {dashOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 4, transition: { duration: 0.12 } }}
+                                        transition={{ type: "spring", stiffness: 500, damping: 34 }}
+                                        className="absolute right-0 top-full w-72 origin-top-right pt-2"
+                                    >
+                                        <ul className="tb-card p-1.5 shadow-[0_20px_50px_-20px_rgb(var(--ink)/0.4)]">
+                                            {dashboardLinks.map((l) => (
+                                                <li key={l.to}>
+                                                    <NavLink
+                                                        to={l.to}
+                                                        className={({ isActive }) =>
+                                                            `block rounded-lg px-3.5 py-2.5 transition-colors hover:bg-paper ${isActive ? "bg-paper" : ""}`
+                                                        }
+                                                    >
+                                                        <span className="block text-[15px] font-bold">
+                                                            {l.label}
+                                                        </span>
+                                                        <span className="block text-[13px] text-ink-soft">
+                                                            {l.hint}
+                                                        </span>
+                                                    </NavLink>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    )}
+                </nav>
 
-            <div className="navbar-end">
+                <div className="flex items-center gap-2">
+                    <motion.button
+                        type="button"
+                        onClick={toggleTheme}
+                        whileTap={{ rotate: 30, scale: 0.9 }}
+                        aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
+                        className="flex h-10 w-10 items-center justify-center rounded-md text-ink-soft transition-colors hover:bg-card hover:text-ink"
+                    >
+                        {dark ? <IoSunnyOutline size={19} /> : <IoMoonOutline size={18} />}
+                    </motion.button>
 
+                    {user?.email ? (
+                        <div className="hidden items-center gap-3 sm:flex">
+                            <span className="flex items-center gap-2.5">
+                                <Avatar src={user.photoURL} name={user.displayName} />
+                                <span className="hidden max-w-[10rem] truncate text-sm font-bold xl:block">
+                                    {user.displayName}
+                                </span>
+                            </span>
+                            <button onClick={handleSignOutUser} className="tb-btn-line h-10 px-4">
+                                Sign out
+                            </button>
+                        </div>
+                    ) : (
+                        <Link to="/signin" className="tb-btn-ink hidden h-10 px-5 sm:inline-flex">
+                            Sign in
+                        </Link>
+                    )}
 
-                 {/* Toggle for Theme Customization */}
-            <input 
-            onClick={()=> setThemeDark(!themeDark)}
-            type="checkbox" 
-            className="toggle theme-controller mr-4" 
-            defaultChecked />
-
-                {/* dropdown menu for small  device */}
-                <div className="dropdown mr-3 bg-gradient-to-r from-[rgb(14,87,101)] to-[rgb(14,87,100)]">
-
-                    <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M4 6h16M4 12h8m-8 6h16" />
-                        </svg>
-                    </div>
-
-                    <ul
-                        tabIndex={0}
-                        className="menu menu-sm dropdown-content bg-gray-900 text-[rgb(62,146,159)] rounded-box z-[1] mt-3 w-44 px-2 py-5 shadow font-bold">
-                        {menuLinks}
-                        {dashBoardRoutes}
-                    </ul>
+                    <button
+                        type="button"
+                        onClick={() => setMenuOpen((o) => !o)}
+                        aria-expanded={menuOpen}
+                        aria-controls="mobile-menu"
+                        aria-label={menuOpen ? "Close menu" : "Open menu"}
+                        className="flex h-10 w-10 items-center justify-center rounded-md text-ink transition-colors hover:bg-card lg:hidden"
+                    >
+                        {menuOpen ? <IoClose size={22} /> : <IoMenu size={22} />}
+                    </button>
                 </div>
-                {/* dropdown end */}
-
-                <ul className="menu menu-horizontal px-1 font-medium">
-                    {user && user?.email ?
-
-                        (<div className="flex">
-
-                            <div role="button" className="btn btn-ghost btn-circle avatar">
-                                <div className="w-10 rounded-full">
-                                    <img
-                                        alt="Tailwind CSS Navbar component"
-                                        src={user?.photoURL} />
-                                </div>
-                            </div>
-
-                            <div className="justify-between p-2 mt-2">
-                                {user?.displayName}
-                            </div>
-
-                            <div><button onClick={handleSignOutUser}
-                                className="btn rounded-md bg-[#FFC107] text-[rgb(14,87,101)] dark:border-yellow-300">
-                                Sign Out</button></div>
-
-                        </div>) :
-                        <Link className="btn px-10 py-3 mx-4 rounded-md  bg-[#FFC107] text-[rgb(14,87,101)]" to="/signin">Sign In</Link>
-                    }
-                </ul>
             </div>
 
+            <AnimatePresence>
+                {menuOpen && (
+                    <motion.nav
+                        id="mobile-menu"
+                        aria-label="Mobile"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                        className="overflow-hidden border-t border-rule bg-paper lg:hidden"
+                    >
+                        <div className="tb-container space-y-6 py-6">
+                            <ul className="grid grid-cols-2 gap-2">
+                                {mainLinks.map((l) => (
+                                    <li key={l.to}>
+                                        <NavLink
+                                            to={l.to}
+                                            end
+                                            className={({ isActive }) =>
+                                                `block rounded-lg border px-4 py-3 font-bold ${isActive ? "border-stamp bg-card text-ink" : "border-rule text-ink-soft"}`
+                                            }
+                                        >
+                                            {l.label}
+                                        </NavLink>
+                                    </li>
+                                ))}
+                            </ul>
 
-        </div>
+                            {user?.email && (
+                                <div>
+                                    <p className="tb-eyebrow mb-2">Dashboard</p>
+                                    <ul className="tb-card divide-y divide-rule">
+                                        {dashboardLinks.map((l) => (
+                                            <li key={l.to}>
+                                                <NavLink to={l.to} className="block px-4 py-3">
+                                                    <span className="block font-bold">{l.label}</span>
+                                                    <span className="block text-sm text-ink-soft">
+                                                        {l.hint}
+                                                    </span>
+                                                </NavLink>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {user?.email ? (
+                                <div className="flex items-center justify-between gap-3 sm:hidden">
+                                    <span className="flex min-w-0 items-center gap-2.5">
+                                        <Avatar src={user.photoURL} name={user.displayName} />
+                                        <span className="truncate font-bold">{user.displayName}</span>
+                                    </span>
+                                    <button onClick={handleSignOutUser} className="tb-btn-line h-10">
+                                        Sign out
+                                    </button>
+                                </div>
+                            ) : (
+                                <Link to="/signin" className="tb-btn-ink w-full sm:hidden">
+                                    Sign in
+                                </Link>
+                            )}
+                        </div>
+                    </motion.nav>
+                )}
+            </AnimatePresence>
+        </header>
     );
 };
 

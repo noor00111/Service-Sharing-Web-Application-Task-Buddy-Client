@@ -1,34 +1,64 @@
-import React, { useEffect, useState } from 'react';
-import PopularServicesCard from './popularServicesCard';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { FaArrowRight } from "react-icons/fa";
+import ServiceCard from "./ServiceCard";
+
+const SkeletonCard = () => (
+    <div className="tb-card overflow-hidden" aria-hidden>
+        <div className="aspect-[4/3] animate-pulse bg-rule/50" />
+        <div className="space-y-3 p-5">
+            <div className="h-3 w-24 animate-pulse rounded bg-rule/60" />
+            <div className="h-5 w-2/3 animate-pulse rounded bg-rule/60" />
+            <div className="h-3 w-full animate-pulse rounded bg-rule/40" />
+        </div>
+    </div>
+);
 
 const PopularServices = () => {
-    const [popularServices, setPopularService] = useState([]);
+    const [popularServices, setPopularServices] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [failed, setFailed] = useState(false);
 
-    useEffect(()=>{
-        fetch('https://task-buddy-server-side.vercel.app/services/popular')
-        .then(res => res.json())
-        .then(data => {
-            setPopularService(data);
-        })
-    }, [])
+    useEffect(() => {
+        fetch("https://task-buddy-server-side.vercel.app/services/popular")
+            .then((res) => res.json())
+            .then((data) => setPopularServices(Array.isArray(data) ? data : []))
+            .catch(() => setFailed(true))
+            .finally(() => setLoading(false));
+    }, []);
 
     return (
-        <div className='mt-10'>
-            <h1 className='text-3xl font-bold font-headingFont text-center mb-6 text-[#004d4f] dark:text-[#FFC107]'>Our Most Popular Services</h1>
-            <p className='font-bodyFont text-md text-[#858383] dark:text-yellow-100 mb-10 text-center px-10'>Uncover the services that learners trust and admire the most, and take the first meaningful step toward achieving your educational and personal growth goals with Task Buddy. Let us guide you on your journey to success with offerings designed to inspire, support, and empower you every step of the way!</p>
-           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-5'>
-           {
-                popularServices.map(popularService =><PopularServicesCard
-                key={popularService._id}
-                popularService={popularService}
-                ></PopularServicesCard>)
-            }
-           </div>
-           <div className='flex justify-center mt-10'>
-            <Link to="/services"><button className=' w-96  bg-[#004d4f] dark:bg-[#16324F] hover:bg-[#003e3f] text-white px-6 py-8 rounded-lg' >Show All Services</button></Link>
-           </div>
-        </div>
+        <section className="tb-container py-16" aria-labelledby="popular-title">
+            <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <h2 id="popular-title"
+                        className="mt-2 font-display text-4xl leading-tight md:text-[2.75rem]">
+                        Popular services
+                    </h2>
+                    <p className="mt-3 max-w-lg text-ink-soft">
+                        The services learners open most. Sign in to see full details and book one.
+                    </p>
+                </div>
+                <Link to="/services" className="group inline-flex items-center gap-2 font-bold text-plum">
+                    See all services
+                    <FaArrowRight className="text-xs transition-transform group-hover:translate-x-1" />
+                </Link>
+            </div>
+
+            {failed ? (
+                <p className="tb-card p-6 text-ink-soft">
+                    Popular services didn&apos;t load. Refresh the page to try again.
+                </p>
+            ) : (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {loading
+                        ? Array.from({ length: 6 }, (_, i) => <SkeletonCard key={i} />)
+                        : popularServices.map((service, i) => (
+                              <ServiceCard key={service._id} service={service} index={i} />
+                          ))}
+                </div>
+            )}
+        </section>
     );
 };
 

@@ -1,19 +1,18 @@
-import React from 'react';
-import Banner from '../components/Banner';
-import PopularServices from '../components/popularServices';
-import MasterTrending from '../components/MasterTrending';
-import FAQ from '../components/FAQ';
-import PersonalizedLearning from '../components/PersonalizedLearning';
+import Banner from "../components/Banner";
+import PopularServices from "../components/PopularServices";
+import HowItWorks from "../components/HowItWorks";
+import TwoSides from "../components/TwoSides";
+import FAQ from "../components/FAQ";
 
 const Home = () => {
     return (
-        <div>
-           <Banner></Banner>
-           <PopularServices></PopularServices>
-           <MasterTrending></MasterTrending>
-           <PersonalizedLearning></PersonalizedLearning>
-           <FAQ></FAQ>
-        </div>
+        <>
+            <Banner />
+            <PopularServices />
+            <HowItWorks />
+            <TwoSides />
+            <FAQ />
+        </>
     );
 };
 

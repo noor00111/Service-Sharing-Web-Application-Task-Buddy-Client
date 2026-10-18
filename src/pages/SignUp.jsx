@@ -1,144 +1,154 @@
-import Lottie from 'lottie-react';
-import React, { useContext, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import signupAnimation from '../assets/animaiton/signup.json'
-import { toast } from 'react-toastify';
-import AuthContext from '../context/AuthContext';
+import { useContext, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { IoCheckmark } from "react-icons/io5";
+import AuthContext from "../context/AuthContext";
+import AuthShell, { Divider, GoogleButton, PasswordField } from "../components/AuthShell";
+import { authMessage } from "../utils/format";
+
+const RULES = [
+    { id: "len", label: "6+ characters", test: (p) => p.length >= 6 },
+    { id: "upper", label: "A capital letter", test: (p) => /[A-Z]/.test(p) },
+    { id: "lower", label: "A lowercase letter", test: (p) => /[a-z]/.test(p) },
+];
 
 const SignUp = () => {
-    const {UserSignup,setUser,googleUser, updateProfileUser} = useContext(AuthContext);
+    const { UserSignup, setUser, googleUser, updateProfileUser } = useContext(AuthContext);
     const navigate = useNavigate();
+    const location = useLocation();
+    const [password, setPassword] = useState("");
+    const [busy, setBusy] = useState(false);
+    const destination = location?.state || "/";
 
-
-    const handleSignupUser = (e)=>{
+    const handleSignupUser = (e) => {
         e.preventDefault();
-
-        const name = e.target.name.value;
+        const name = e.target.name.value.trim();
         const email = e.target.email.value;
         const photo = e.target.photo.value;
-        const password = e.target.password.value;
 
-        const checkUpperCase = /[A-Z]/;
-        if(!checkUpperCase.test(password)){
-            toast.warning('At least one capital letter is required!')
+        const failed = RULES.find((r) => !r.test(password));
+        if (failed) {
+            toast.warning(`Password needs ${failed.label.toLowerCase()}.`);
+            return;
         }
 
-        const checkLowerCase = /[a-z]/;
-        if(!checkLowerCase.test(password)){
-            toast.warning('At least one lowercase letter is required!')
-        }
-
-
+        setBusy(true);
         UserSignup(email, password)
-        .then(result =>{
-            const userInDB = {name, email, photo};
-            fetch('https://task-buddy-server-side.vercel.app/users',{
-                method: "POST",
-                headers: {
-                    'content-type': 'application/json'
-                },
-                body: JSON.stringify(userInDB)
+            .then((result) => {
+                fetch("https://task-buddy-server-side.vercel.app/users", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ name, email, photo }),
+                }).catch(() => {});
+
+                return updateProfileUser({ displayName: name, photoURL: photo }).then(() => {
+                    setUser({ ...result.user, displayName: name, photoURL: photo });
+                    toast.success(`Account created. Welcome, ${name.split(" ")[0]}.`);
+                    navigate(destination);
+                });
             })
-            .then(res => res.json())
-            .then(data =>{
-                // if(data.insertedId){
-                //     alert("created in DB")
-                // }
-            })
+            .catch((error) => toast.error(authMessage(error)))
+            .finally(() => setBusy(false));
+    };
 
-            const user = result.user;
-            // console.log(user);
-            setUser(user);
-            toast.success("Successfully Signup!!");
-            updateProfileUser({displayName: name, photoURL: photo})
-            .then(()=>{
-                navigate("/")
-            }).catch(err => {
-                toast(err);
-            })
-
-        })
-        .catch((error)=>{
-            toast.error(error.message);
-        })
-
-    }
-
-    const handleGoogleUser = () =>{
+    const handleGoogleUser = () => {
         googleUser()
-        .then((result)=>{
-            const user = result.user;
-            setUser(user);
-            navigate("/");
-        })
-        .catch((error)=>{
-            toast.error(error);
-        })
-    }
-
-
+            .then((result) => {
+                setUser(result.user);
+                toast.success("Signed in with Google");
+                navigate(destination);
+            })
+            .catch((error) => toast.error(authMessage(error)));
+    };
 
     return (
-        <div className="dark:bg-[#0A192F] min-h-screen grid lg:grid-cols-2 justify-center items-center bg-gray-50 my-10">
-        
-        
-        <div>
-            <Lottie animationData={signupAnimation}></Lottie>
-        </div>
-
-        <div className="dark:bg-[#004D40] card bg-base-100 w-full max-w-lg shrink-0 shadow-md p-10 rounded-none">
-            <h1 className="dark:text-[#FFC107] font-semibold text-center text-3xl font-headingFont text-[rgb(14,87,101)]">Sign Up!</h1>
-            <form 
-            onSubmit={handleSignupUser}
-             className="card-body ">
-                <div className="form-control">
-                    <label className="label">
-                        <span className="label-text font-headingFont dark:text-yellow-400">Name</span>
-                    </label>
-                    <input name="name" type="text" placeholder="name" className="input input-bordered dark:text-green-950 border-[rgb(14,87,101)]" required />
+        <AuthShell
+            eyebrow="New account"
+            title="Create your account"
+            intro="Book services, or list your own for others to book.">
+            <form onSubmit={handleSignupUser} className="space-y-5">
+                <div className="grid gap-5 sm:grid-cols-2">
+                    <div>
+                        <label htmlFor="name" className="tb-label">
+                            Name
+                        </label>
+                        <input
+                            id="name"
+                            name="name"
+                            type="text"
+                            autoComplete="name"
+                            required
+                            className="tb-field"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="email" className="tb-label">
+                            Email
+                        </label>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            autoComplete="email"
+                            required
+                            className="tb-field"
+                        />
+                    </div>
                 </div>
-
-                <div className="form-control">
-                    <label className="label">
-                        <span className="label-text font-headingFont dark:text-yellow-400">Email</span>
+                <div>
+                    <label htmlFor="photo" className="tb-label">
+                        Photo URL
                     </label>
-                    <input name="email" type="email" placeholder="email" className="input input-bordered dark:text-green-950 border-[rgb(14,87,101)]" required />
+                    <input
+                        id="photo"
+                        name="photo"
+                        type="url"
+                        required
+                        className="tb-field"
+                        placeholder="https://…"
+                    />
                 </div>
-
-                <div className="form-control">
-                    <label className="label">
-                        <span className="label-text font-headingFont dark:text-yellow-400">Photo URL</span>
-                    </label>
-                    <input name="photo" type="photo" placeholder="photo-url" className="input input-bordered dark:text-green-950 border-[rgb(14,87,101)]" required />
+                <div>
+                    <PasswordField
+                        autoComplete="new-password"
+                        onChange={(e) => setPassword(e.target.value)}
+                        describedBy="pw-rules"
+                    />
+                    <ul id="pw-rules" className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-sm">
+                        {RULES.map((r) => {
+                            const ok = r.test(password);
+                            return (
+                                <li
+                                    key={r.id}
+                                    className={`flex items-center gap-1.5 transition-colors ${ok ? "text-deep" : "text-ink-soft"}`}>
+                                    <span
+                                        className={`flex h-4 w-4 items-center justify-center rounded-full border ${ok ? "border-deep bg-deep text-paper" : "border-rule"}`}>
+                                        {ok && <IoCheckmark size={11} aria-hidden />}
+                                    </span>
+                                    {r.label}
+                                </li>
+                            );
+                        })}
+                    </ul>
                 </div>
-
-                <div className="form-control relative">
-                    <label className="label">
-                        <span className="label-text font-headingFont dark:text-yellow-400">Password</span>
-                    </label>
-                    <input name="password"
-                        placeholder="password"
-                        className="input input-bordered dark:text-green-950 border-[rgb(14,87,101)]"
-                        required />
-               
-                    <label className="label">
-                        <a href="#" className="label-text-alt link link-hover dark:text-yellow-400">Forgot password?</a>
-                    </label>
-                </div>
-
-                <div className="form-control mt-6">
-                    <button className="btn bg-[rgb(14,87,101)] dark:bg-[#F5F5F5] text-gray-100 font-bold hover:bg-white hover:border-2 hover:text-[rgb(14,87,101)] hover:border-[rgb(14,87,101)] dark:text-[rgb(14,87,101)]">Sign Up</button>
-                </div>
-                <div className="divider dark:">OR</div>
-                <p>
-                <button 
-                onClick={handleGoogleUser} 
-                className="btn btn-ghost hover:bg-[rgb(14,87,101)] hover:text-gray-100 font-bold bg-white hover:border-3 text-[rgb(14,87,101)] border-[rgb(14,87,101)] w-full mb-4 dark:hover:border-yellow-400 dark:hover:text-[rgb(14,87,101)] dark:bg-white"> <img className='w-9' src="https://i.ibb.co.com/zrRYpv8/icons8-google-120.png" alt="" />Sign Up With Google</button>
-            </p>
-            <p className="text-center font-medium font-headingFont">Have an account already? <Link className="text-[rgb(14,87,101)] dark:text-yellow-400" to="/signin">Please Sign In!!</Link></p>
+                <button type="submit" disabled={busy} className="tb-btn-ink h-12 w-full text-[15px]">
+                    {busy ? "Creating account…" : "Create account"}
+                </button>
             </form>
-        </div>
-    </div>
+
+            <Divider />
+            <GoogleButton onClick={handleGoogleUser}>Sign up with Google</GoogleButton>
+
+            <p className="mt-8 text-center text-ink-soft">
+                Already have an account?{" "}
+                <Link
+                    className="font-bold text-plum underline-offset-4 hover:underline"
+                    to="/signin"
+                    state={location?.state}>
+                    Sign in
+                </Link>
+            </p>
+        </AuthShell>
     );
 };
 

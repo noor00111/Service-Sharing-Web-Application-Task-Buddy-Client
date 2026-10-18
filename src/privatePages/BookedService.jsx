@@ -1,74 +1,71 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { useLoaderData } from 'react-router-dom';
-import AuthContext from '../context/AuthContext';
-import axios from 'axios';
-import Lottie from 'lottie-react';
-import nodataAnimation from '../assets/animaiton/nodata.json'
+import { useContext, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import { AnimatePresence } from "framer-motion";
+import AuthContext from "../context/AuthContext";
+import PageHeader from "../components/ui/PageHeader";
+import EmptyState from "../components/ui/EmptyState";
+import BookingSlip from "../components/BookingSlip";
+import StatusFilter from "../components/StatusFilter";
+import Loading from "../components/Loading";
+import { normalizeStatus } from "../utils/format";
 
 const BookedService = () => {
-    const {user} = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
     const [booked, setBooked] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState("all");
 
- 
+    useEffect(() => {
+        axios
+            .get(`https://task-buddy-server-side.vercel.app/bookedService?email=${user.email}`, {
+                withCredentials: true,
+            })
+            .then((res) => setBooked(res.data))
+            .catch(() => setBooked([]))
+            .finally(() => setLoading(false));
+    }, [user.email]);
 
-    useEffect(()=>{
-        axios.get(`https://task-buddy-server-side.vercel.app/bookedService?email=${user.email}`,{
-            withCredentials: true
-        })
-        .then(res => setBooked(res.data))
-    }, [user.email])
-
+    const visible =filter === "all" ? booked : booked.filter((b) => normalizeStatus(b.serviceStatus) === filter);
 
     return (
-            <div className="min-h-screen py-10 px-4 sm:px-10 font-bodyFont">
-              <h1 className="text-3xl font-bold dark:text-yellow-300  text-teal-600 text-center mb-8 font-headingFont">
-                My Booked Services
-              </h1>
-              {booked.length === 0 ? (
-                <div className="flex flex-col items-center justify-center mt-10">
-                  <Lottie animationData={nodataAnimation}></Lottie>
-                  <h2 className="text-4xl font-medium text-teal-600">
-                    You Have Not Booked Any Services Yet!
-                  </h2>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {booked.map((service) => (
-                    <div
-                      key={service._id}
-                      className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-lg transition duration-300"
-                    >
-                      <img
-                        src={service.serviceImage}
-                        alt={service.serviceName}
-                        className="w-full h-48 object-cover"
-                      />
-                      <div className="p-6">
-                        <h2 className="text-xl font-bold text-gray-800 mb-2">
-                          {service.serviceName}
-                        </h2>
-                        <p className="text-gray-600"><span className='font-semibold'>Description : </span> {service.specialInstruction}</p>
-                        <p className="text-gray-600"><span className='font-semibold'>Purchase Date : </span> {service.serviceDate}</p>
-                          <span className="text-gray-700 text-sm">
-                          <span className='font-semibold'>Provider Name : </span> {service.providerName}
-                          </span>
-                       <div className='flex gap-5 mt-2'>
-                       <span className="text-gray-700 text-sm border-2 rounded-full px-1 py-2 bg-gray-200">
-                          Status: {service.serviceStatus}
-                          </span>
-                       
+        <>
+            <PageHeader
+                eyebrow="Your desk"
+                title="My bookings"
+                aside={
+                    booked.length > 0 && (
+                        <StatusFilter id="booked" bookings={booked} value={filter} onChange={setFilter} />
+                    )}>
+                Every service you&apos;ve booked. The stamp changes when the provider updates it.
+            </PageHeader>
 
-                        <p className="text-teal-600 text-sm border-2 rounded-full p-1 px-1 py-2 bg-gray-200">
-                          Price: ${service.servicePrice}
-                        </p>
-                       </div>
-                        
-                      </div>
+            <section className="tb-container">
+                {loading ? (
+                    <Loading label="Fetching your bookings" />
+                ) : booked.length === 0 ? (
+                    <EmptyState
+                        title="You haven't booked anything yet"
+                        action={
+                            <Link to="/services" className="tb-btn-ink">
+                                Browse services
+                            </Link>
+                        }>
+                        Find a service, pick a date, and your booking slip will appear here.
+                    </EmptyState>
+                ) : visible.length === 0 ? (
+                    <p className="tb-card p-6 text-ink-soft">No bookings are {filter} right now.</p>
+                ) : (
+                    <div className="space-y-5">
+                        <AnimatePresence mode="popLayout">
+                            {visible.map((booking, i) => (
+                                <BookingSlip key={booking._id} booking={booking} index={i} />
+                            ))}
+                        </AnimatePresence>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                )}
+            </section>
+        </>
     );
 };
 

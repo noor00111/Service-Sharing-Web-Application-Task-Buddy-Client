@@ -1,48 +1,85 @@
-import React from 'react';
-import { Link, useLoaderData } from 'react-router-dom';
-import { IoLocationSharp } from "react-icons/io5";
+import { Link, useLoaderData } from "react-router-dom";
+import { motion } from "framer-motion";
+import { IoLocationOutline, IoArrowBack } from "react-icons/io5";
+import { FaArrowRight } from "react-icons/fa";
+import Avatar from "../components/ui/Avatar";
+import { formatPrice } from "../utils/format";
+
+const ease = [0.22, 1, 0.36, 1];
 
 const SingleServiceDetails = () => {
-    const singleServiceData = useLoaderData();
-    const { _id, serviceImage, serviceName, serviceDescription, serviceArea,servicePrice, serviceProvider} = singleServiceData;
+    const {_id, serviceImage, serviceName, serviceDescription, serviceArea, servicePrice, serviceProvider = {}} = useLoaderData();
 
     return (
-        <div className="  bg-gradient-to-b from-[#EAF6F6] to-[#FDFCFB] min-h-screen">
-      <div className="dark:bg-[#0A192F] grid lg:grid-cols-4 gap-5 mx-auto px-6 py-12">
+        <div className="tb-container py-10 md:py-14">
+            <Link to="/services"
+                className="inline-flex items-center gap-2 text-sm font-bold text-ink-soft transition-colors hover:text-ink">
+                <IoArrowBack aria-hidden /> All services
+            </Link>
 
+            <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-12">
+                <motion.article
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease }}>
+                    <div className="overflow-hidden rounded-2xl border border-rule bg-card">
+                        <img src={serviceImage} alt="" className="aspect-[16/9] w-full object-cover" />
+                    </div>
+                    <p className="tb-eyebrow mt-8 flex items-center gap-1.5">
+                        <IoLocationOutline aria-hidden className="text-sm" /> {serviceArea}
+                    </p>
+                    <h1 className="mt-3 font-display text-4xl leading-[1.05] md:text-5xl">{serviceName}</h1>
+                    <p className="mt-6 max-w-[65ch] whitespace-pre-line text-lg leading-relaxed text-ink-soft">
+                        {serviceDescription}
+                    </p>
+                </motion.article>
 
-        {/* //-----Single Service Info------/ */}
-        <div className="lg:col-span-3 bg-white shadow-lg rounded-lg overflow-hidden">
-          <img
-            src={serviceImage}
-            alt={serviceName}
-            className="w-full h-80 object-cover"
-          />
-          <div className="p-8">
-            <h1 className="text-4xl font-bold text-[#284B63] font-headingFont mb-4">{serviceName}</h1>
-            <p className="text-lg text-gray-600 mb-4 leading-relaxed">{serviceDescription} </p>
-            <p className="text-2xl font-semibold text-[#3C6E71]">Price: {servicePrice} BDT</p>
-            <Link to={`/bookService/${_id}`}> <button className="px-8 py-3 bg-[#3C6E71] text-white rounded-lg font-medium hover:bg-[#284B63] transition duration-300 w-full mt-4">Book Now</button></Link>
-          </div>
+                <motion.aside
+                    className="lg:sticky lg:top-24 lg:self-start"
+                    initial={{ opacity: 0, y: 24, rotate: 1.5 }}
+                    animate={{ opacity: 1, y: 0, rotate: 0 }}
+                    transition={{ duration: 0.6, delay: 0.15, ease }}>
+                    <div className="tb-slip shadow-[0_24px_50px_-30px_rgb(var(--ink)/0.45)]">
+                        <div className="p-6">
+                            <p className="tb-eyebrow">Price</p>
+                            <p className="mt-1 font-mono text-4xl font-semibold">
+                                {formatPrice(servicePrice)}{" "}
+                                <span className="text-sm font-medium text-ink-soft">BDT</span>
+                            </p>
+                        </div>
+
+                        <div className="tb-perf p-6">
+                            <p className="tb-eyebrow">Provided by</p>
+                            <div className="mt-3 flex items-center gap-3">
+                                <Avatar
+                                    src={serviceProvider.providerImage}
+                                    name={serviceProvider.providerName}
+                                    size="h-14 w-14"
+                                />
+                                <div className="min-w-0">
+                                    <p className="truncate text-lg font-bold">
+                                        {serviceProvider.providerName}
+                                    </p>
+                                    <p className="flex items-center gap-1 text-sm text-ink-soft">
+                                        <IoLocationOutline aria-hidden /> {serviceArea}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <Link
+                                to={`/bookService/${_id}`}
+                                className="tb-btn-ink group mt-6 h-12 w-full text-[15px]">
+                                Book this service
+                                <FaArrowRight className="text-xs transition-transform group-hover:translate-x-1" />
+                            </Link>
+                            <p className="mt-3 text-center text-sm text-ink-soft">
+                                Next you&apos;ll pick a date and add a note.
+                            </p>
+                        </div>
+                    </div>
+                </motion.aside>
+            </div>
         </div>
-
-          {/* //-----Provider Info------// */}
-          <div className="dark:bg-[#1E293B] items-center shadow-lg rounded-lg p-4 font-bodyFont bg-[#bdc2c3]">
-          <h1 className='text-center font-headingFont border-b-2 border-[#3C6E71] font-bold text-lg mt-10 mb-6'>Provider Information</h1>
-          <img
-            src={serviceProvider.providerImage}
-            alt={serviceProvider.providerName}
-            className="object-cover rounded-lg border-2 border-[#3C6E71]"
-          />
-          <div className="text-center mt-8">
-            <h2 className="text-2xl text-[#284B63] dark:text-white"><span className=' font-bold font-headingFont'>Name:</span> {serviceProvider.providerName}</h2>
-            <p className="text-[#3C6E71] dark:text-yellow-400 justify-center mt-2 flex gap-2"><IoLocationSharp size={25} /> 
-              <span className="text-[#3C6E71] dark:text-white"> {serviceArea}</span>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
     );
 };
 
